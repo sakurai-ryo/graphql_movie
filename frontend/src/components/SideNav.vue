@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-card title="映画監督" class="mt-4">
-      <b-form>
+      <b-form @submit.prevent="addDirector">
         <b-form-group label="監督名" label-for="input-director-name">
           <b-form-input
             v-model="form.director.name"
@@ -64,7 +64,12 @@
 </template>
 
 <script>
-import { DIRECTOR_LIST, ADD_MOVIE, MOVIE_LIST } from "../../graphql/queries";
+import {
+  DIRECTOR_LIST,
+  ADD_MOVIE,
+  MOVIE_LIST,
+  ADD_DIRECTOR
+} from "../../graphql/queries";
 
 export default {
   name: "SideNav",
@@ -88,6 +93,12 @@ export default {
   },
 
   methods: {
+    clearForm(target) {
+      //マウント時に保持するデータ
+      const initData = this.$options.data();
+      console.log(initData);
+      Object.assign(this.$data.form[target], initData.form[target]);
+    },
     addMovie() {
       const { name, genre, directorId } = this.form.movie;
       this.$apollo
@@ -106,6 +117,31 @@ export default {
           }
         })
         .then(data => {
+          this.clearForm("movie");
+          console.log(data);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    addDirector() {
+      const { name, age } = this.form.director;
+      this.$apollo
+        .mutate({
+          mutation: ADD_DIRECTOR,
+          variables: {
+            name,
+            age: parseInt(age)
+          },
+          update: (store, { data: { addDirector } }) => {
+            //クエリの実行
+            const data = store.readQuery({ query: DIRECTOR_LIST });
+            data.directors.push(addDirector);
+            store.writeQuery({ query: DIRECTOR_LIST, data });
+          }
+        })
+        .then(data => {
+          this.clearForm("director");
           console.log(data);
         })
         .catch(err => {
