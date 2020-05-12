@@ -7,6 +7,7 @@ const {
     GraphQLID,
     GraphQLString,
     GraphQLInt,
+    GraphQLList,
     GraphQLSchema
 } = graphql;
 
@@ -21,6 +22,12 @@ const MovieType = new GraphQLObjectType({
         },
         genre: {
             type: GraphQLString
+        },
+        director: {
+            type: DirecterType,
+            resolve(parent, args) {
+                return Director.findById(parent.directorId)
+            }
         }
     })
 });
@@ -36,6 +43,14 @@ const DirecterType = new GraphQLObjectType({
         },
         age: {
             type: GraphQLInt
+        },
+        movies: {
+            type: new GraphQLList(MovieType),
+            resolve(parent, args) {
+                return Movie.find({
+                    directorId: parent.id
+                })
+            }
         }
     })
 })
@@ -48,7 +63,18 @@ const RootQuery = new GraphQLObjectType({
             type: MovieType,
             args: {
                 id: {
-                    type: GraphQLString
+                    type: GraphQLID
+                }
+            },
+            resolve(parents, args) {
+                return Movie.findById(args.id);
+            }
+        },
+        director: {
+            type: DirecterType,
+            args: {
+                id: {
+                    type: GraphQLID
                 }
             },
             resolve(parents, args) {
@@ -69,12 +95,16 @@ const Mutation = new GraphQLObjectType({
                 },
                 genre: {
                     type: GraphQLString
+                },
+                directorId: {
+                    type: GraphQLID
                 }
             },
             resolve(parent, args) {
                 const movie = new Movie({
                     name: args.name,
-                    genre: args.genre
+                    genre: args.genre,
+                    directorId: args.directorId
                 })
                 return movie.save();
             }
