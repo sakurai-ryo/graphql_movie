@@ -5,6 +5,7 @@ const schema = require('./schema/schema');
 const app = express();
 require('dotenv').config();
 
+console.log(process.env.MONGO_URL)
 mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true
 }).catch((err) => {

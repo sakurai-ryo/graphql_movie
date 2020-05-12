@@ -90,7 +90,7 @@ const Mutation = new GraphQLObjectType({
                 }
             },
             resolve(parent, args) {
-                const director = new Director({
+                const director = new DirecterType({
                     name: args.name,
                     age: args.age
                 });
